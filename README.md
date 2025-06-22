@@ -6,5 +6,5 @@ A more convenient way of displaying romanized lyrics to a song next to a YouTube
 Collapsed:
 ![Lyrics Panel Demo](assets/neutral.png)
 
-Exapaneded:
+Expanded:
 ![Lyrics Panel Demo](assets/opened.png)
