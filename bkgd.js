@@ -45,6 +45,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     })();
     return true;
   }
+
+  if (message.action === "download_from_page") {
+		chrome.downloads.download({
+			url: message.dataUrl,
+			filename: message.filename,
+			saveAs: true 
+		});
+	}
 });
 
 //Tab update listener
@@ -56,4 +64,21 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
       files: ['content-script.js']
     });
   }
+});
+
+//Command listener
+chrome.commands.onCommand.addListener((command) => {
+	if (command === "take-screenshot") {
+		chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+			chrome.tabs.sendMessage(tabs[0].id, { action: "capture" }, (response) => {
+				if (response) {
+					chrome.downloads.download({
+						url: response.dataUrl,
+						filename: response.filename,
+						saveAs: true
+					});
+				}
+			});
+		});
+	}
 });
