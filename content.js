@@ -15,7 +15,8 @@ function captureAnimeFrame() {
 
     // --- 1. Get the Anime Name ---
     const titleLink = document.querySelector('.linetitle3.c a');
-    const animeName = titleLink ? titleLink.innerText.replace(/\s+/g, '') : 'UnknownAnime';
+    const animeName = titleLink ? titleLink.innerText.replace(/[^a-zA-Z0-9]/g, '') : 'UnknownAnime';
+	const animeNameShort = animeName.substr(0, 100);
 
     // --- 2. Get the Episode Number ---
     const titleContainer = document.querySelector('.linetitle3.c');
@@ -29,7 +30,7 @@ function captureAnimeFrame() {
     const timestamp = new Date(timeInSeconds * 1000).toISOString().substr(14, 5).replace(':', 'm') + 's';
 
     // Combine them for the final filename
-    const filename = `${animeName}_${epNumber}_${timestamp}.png`;
+    const filename = `${animeNameShort}_${epNumber}_${timestamp}.png`;
 
     // --- 4. Capture the Screenshot ---
     const canvas = document.createElement('canvas');

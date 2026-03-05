@@ -183,3 +183,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+let savedTime = null;
+
+// Helper function to find the actual playing video
+function getActiveVideo() {
+    const videos = document.querySelectorAll('video');
+    for (let video of videos) {
+        // Return the video only if it has an active source URL
+        if (video.src && video.src !== '') {
+            return video;
+        }
+    }
+    return null;
+}
+
+document.addEventListener('keydown', (event) => {
+    const activeTag = document.activeElement.tagName;
+    if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement.isContentEditable) {
+        return;
+    }
+
+    // Use our new function instead of querySelector
+    const video = getActiveVideo();
+    if (!video) { console.error(`no video`); return; } 
+
+    if (event.key.toLowerCase() === 'e') {
+        savedTime = video.currentTime;
+        console.log(`Time marked: ${Math.round(savedTime)} seconds`);
+    }
+
+    if (event.key.toLowerCase() === 'r') {
+        if (savedTime !== null) {
+            video.currentTime = savedTime;
+            console.log(`Returned to marked time: ${Math.round(savedTime)} seconds`);
+        } else {
+            console.log('No time has been marked yet.');
+        }
+    }
+});
