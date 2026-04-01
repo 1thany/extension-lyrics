@@ -183,6 +183,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+// --- Mark and Rewind ---
+
 let savedTime = null;
 
 // Helper function to find the actual playing video
@@ -221,3 +223,4 @@ document.addEventListener('keydown', (event) => {
         }
     }
 });
+

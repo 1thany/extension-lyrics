@@ -1,10 +1,21 @@
 // content.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-	if (request.action === "capture") {
-		const data = captureAnimeFrame();
-		if (data) sendResponse(data);
-	}
+    if (request.action === "capture") {
+        const data = captureAnimeFrame();
+        if (data) sendResponse(data);
+    }
 });
+
+// --- Function to skip forward 88 seconds ---
+function skipOpening() {
+    const video = document.getElementById('vid');
+    if (video) {
+        video.currentTime += 88;
+        console.log("Skipped 88 seconds forward.");
+    } else {
+        console.error("Video player not found! Cannot skip.");
+    }
+}
 
 function captureAnimeFrame() {
     const video = document.getElementById('vid');
@@ -16,7 +27,7 @@ function captureAnimeFrame() {
     // --- 1. Get the Anime Name ---
     const titleLink = document.querySelector('.linetitle3.c a');
     const animeName = titleLink ? titleLink.innerText.replace(/[^a-zA-Z0-9]/g, '') : 'UnknownAnime';
-	const animeNameShort = animeName.substr(0, 100);
+    const animeNameShort = animeName.substr(0, 100);
 
     // --- 2. Get the Episode Number ---
     const titleContainer = document.querySelector('.linetitle3.c');
@@ -47,42 +58,68 @@ function captureAnimeFrame() {
     return { dataUrl: dataUrl, filename: filename };
 }
 
-function injectScreenshotButton() {
-	// Find the container where we want to place the button
-	const titleContainer = document.querySelector('.linetitle3.c');
-	
-	// If the container doesn't exist yet, or our button is already there, do nothing
-	if (!titleContainer || document.getElementById('anime-snap-btn')) return;
+// --- UPDATED: Renamed to injectButtons to handle multiple buttons ---
+function injectButtons() {
+    const titleContainer = document.querySelector('.linetitle3.c');
+    
+    if (!titleContainer) return;
 
-	// Create the button element
-	const btn = document.createElement('button');
-	btn.id = 'anime-snap-btn';
-	btn.innerText = 'Snapshot';
-    btn.className = 'boxitem bc2 c1 mar0';
-	
-	btn.style.marginLeft = '15px';
-	btn.style.border = 'none';
-	btn.style.cursor = 'pointer';
-	btn.style.display = 'inline-block';
+    // --- Snapshot Button ---
+    if (!document.getElementById('anime-snap-btn')) {
+        const snapBtn = document.createElement('button');
+        snapBtn.id = 'anime-snap-btn';
+        snapBtn.innerText = 'Snapshot';
+        snapBtn.className = 'boxitem bc2 c1 mar0';
+        snapBtn.style.marginLeft = '15px';
+        snapBtn.style.border = 'none';
+        snapBtn.style.cursor = 'pointer';
+        snapBtn.style.display = 'inline-block';
 
-	// Attach the click event
-	btn.addEventListener('click', (e) => {
-		e.preventDefault(); // Prevents the link inside the div from being clicked
-		const data = captureAnimeFrame();
-		
-		if (data) {
-			// Send the data directly to the background script to download
-			chrome.runtime.sendMessage({
-				action: "download_from_page",
-				dataUrl: data.dataUrl,
-				filename: data.filename
-			});
-		}
-	});
+        snapBtn.addEventListener('click', (e) => {
+            e.preventDefault(); 
+            const data = captureAnimeFrame();
+            
+            if (data) {
+                chrome.runtime.sendMessage({
+                    action: "download_from_page",
+                    dataUrl: data.dataUrl,
+                    filename: data.filename
+                });
+            }
+        });
+        titleContainer.appendChild(snapBtn);
+    }
 
-	// Add the button to the page inside the title container
-	titleContainer.appendChild(btn);
+    // --- Skip OP Button ---
+    if (!document.getElementById('anime-skip-btn')) {
+        const skipBtn = document.createElement('button');
+        skipBtn.id = 'anime-skip-btn';
+        skipBtn.innerText = 'Skip OP (88s)';
+        skipBtn.className = 'boxitem bc2 c1 mar0';
+        skipBtn.style.marginLeft = '10px'; // A little spacing from the snap button
+        skipBtn.style.border = 'none';
+        skipBtn.style.cursor = 'pointer';
+        skipBtn.style.display = 'inline-block';
+
+        skipBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            skipOpening();
+        });
+        titleContainer.appendChild(skipBtn);
+    }
 }
 
-// Run the injection function after a short delay to ensure the DOM is fully loaded
-setTimeout(injectScreenshotButton, 1500);
+
+// Listen for the 'S' key to skip the intro quickly without clicking
+document.addEventListener('keydown', (e) => {
+    // Ignore key presses if the user is typing in an input field or textarea (like a search bar/comments)
+    if (e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
+
+    // Trigger skip if 's' or 'S' is pressed
+    if (e.key.toLowerCase() === 's') {
+        skipOpening();
+    }
+});
+
+// Run the injection function after a short delay
+setTimeout(injectButtons, 1500);
